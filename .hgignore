@@ -1,0 +1,4 @@
+syntax: glob
+java/.idea/
+java/target/
+java/fileupload-app.iml
