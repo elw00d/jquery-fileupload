@@ -1,5 +1,5 @@
 /*!
- * jQuery fileupload - advanced files upload plugin.
+ * jQuery fileupload - files upload plugin.
  *
  * (c) elwood
  */
@@ -25,6 +25,7 @@
             onStarted: null,
             onFinished: null,
             onProgress: null,
+            onError: null,
             invokeDefaults: true // if false there are no progress bar displayed
         };
         $.extend(this._defaults, this.regional['']);
@@ -35,6 +36,10 @@
         this.setDefaults = function(options) {
             $.extend(this._defaults, options || {});
 		    return this;
+        };
+
+        this._getSettings = function(uploaderId) {
+            return $.fileupload._getFormObject(uploaderId).data('settings');
         };
 
         this._getFormObject = function(uploaderId) {
@@ -150,7 +155,12 @@
             var noFile = false;
             formObject.find('[type=file]').each(function(index, item) {
                 if (!item.value && !noFile) {
-                    alert(formObject.data('settings').filesNotSelectedMessage);
+                    var settings = formObject.data('settings');
+                    if (settings.onError != null) {
+                        settings.onError(uploaderId, settings.filesNotSelectedMessage);
+                    } else {
+                        $.fileupload._onErrorDefault(uploaderId, settings.filesNotSelectedMessage);
+                    }
                     noFile = true;
                 }
             });
@@ -184,7 +194,11 @@
             if (hasErrors) {
                 formObject.next().next().find('div')[0].style.width = parseInt(100 * 3.5) + 'px';
                 formObject.next().next().find('div')[0].style.background = 'red';
-                alert($.fileupload._translateErrorMessage(errorMessage, formObject.data('settings')));
+                if (formObject.data('settings').onError != null) {
+                    formObject.data('settings').onError(uploaderId, errorMessage);
+                } else {
+                    $.fileupload._onErrorDefault(uploaderId, errorMessage);
+                }
                 formObject.next().next()[0].style.display = 'none';
             } else {
                 formObject.next().next().find('div')[0].style.width = parseInt(100 * 3.5) + 'px';
@@ -192,6 +206,11 @@
                     formObject.next().next()[0].style.display = 'none';
                 }, 1000);
             }
+        };
+
+        this._onErrorDefault = function(uploaderId, errorMessage) {
+            var formObject = $.fileupload._getFormObject(uploaderId);
+            alert($.fileupload._translateErrorMessage(errorMessage, formObject.data('settings')));
         };
 
         this._translateErrorMessage = function(errorMessage, settings) {
@@ -236,7 +255,11 @@
             var storedProgress = formObject.data('progress');
             if (storedProgress != null && storedProgress != undefined &&
                     storedProgress.status != 'uploaded' && storedProgress.status != 'error') {
-                alert(settings.uploadNotFinishedYetMessage);
+                if (settings.onError != null) {
+                    settings.onError(settings.uploaderId, settings.uploadNotFinishedYetMessage);
+                } else {
+                    $.fileupload._onErrorDefault(settings.uploaderId, settings.uploadNotFinishedYetMessage);
+                }
                 e.preventDefault();
                 return;
             }
