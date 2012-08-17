@@ -9,9 +9,11 @@
         this.regional = [];
         // default regional settings
         this.regional[''] = {
-            clientAbortMessage: 'User has cancelled the upload',
-            sizeLimitExceededMessage: 'Size limit exceeded',
-            internalErrorMessage: 'Internal server error occured',
+            errorMessages: {
+                client_abort: 'User has cancelled the upload',
+                size_limit_exceeded: 'Size limit exceeded',
+                internal_error: 'Internal server error occured'
+            },
             filesNotSelectedMessage: 'Not all files are selected',
             uploadNotFinishedYetMessage: 'Wait until upload finishes or cancel the upload using ESC'
         };
@@ -214,14 +216,8 @@
         };
 
         this._translateErrorMessage = function(errorMessage, settings) {
-            if (errorMessage == 'client_abort') {
-                return settings.clientAbortMessage;
-            }
-            if (errorMessage == 'size_limit_exceeded') {
-                return settings.sizeLimitExceededMessage;
-            }
-            if (errorMessage == 'internal_error') {
-                return settings.internalErrorMessage;
+            if (settings.errorMessages[errorMessage] != undefined && settings.errorMessages[errorMessage] != null) {
+                return settings.errorMessages[errorMessage];
             }
             // it is custom error message
             return errorMessage;
